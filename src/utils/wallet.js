@@ -24,7 +24,10 @@ const BITBOX = new BB({ restURL: `https://trest.bitcoin.com/v1/` })
 // const BITBOX = new BB({ restURL: `http://decatur.hopto.org:3003/v1/` })
 //const BITBOX = new BB({ restURL: `http://192.168.0.13:3003/v1/` })
 
-const walletInfo = require(`../wallet.json`)
+
+var fs = require('fs');
+console.log(process.cwd());
+const walletInfo = require(`../../wallet.json`)
 
 async function consolidateUTXOs() {
   try {
