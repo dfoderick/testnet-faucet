@@ -41,7 +41,7 @@ RUN echo 'password' | sudo -S pwd
 
 # Clone the repository
 WORKDIR /home/myuser
-RUN git clone https://github.com/Bitcoin-com/testnet-faucet
+RUN git clone https://github.com/dfoderick/testnet-faucet
 WORKDIR /home/myuser/testnet-faucet
 
 # Install dependencies

@@ -8,7 +8,7 @@ const Koa = require("koa")
 const bodyParser = require("koa-bodyparser")
 const convert = require("koa-convert")
 const logger = require("koa-logger")
-const mongoose = require("mongoose")
+//const mongoose = require("mongoose")
 const session = require("koa-generic-session")
 const passport = require("koa-passport")
 const mount = require("koa-mount")
@@ -28,19 +28,19 @@ async function startServer() {
   app.keys = [config.session]
 
   // Connect to the Mongo Database.
-  mongoose.Promise = global.Promise
+  //mongoose.Promise = global.Promise
 
-  try {
-    await mongoose.connect(
-      config.database,
-      { useNewUrlParser: true }
-    )
-    mongoose.set("useCreateIndex", true) // Stop deprecation warning.
-  } catch (err) {
-    console.log(`Error trying to connect to Mongo Database: `, err)
-    console.log(`Exiting.`)
-    process.exit(0)
-  }
+  // try {
+  //   await mongoose.connect(
+  //     config.database,
+  //     { useNewUrlParser: true }
+  //   )
+  //   mongoose.set("useCreateIndex", true) // Stop deprecation warning.
+  // } catch (err) {
+  //   console.log(`Error trying to connect to Mongo Database: `, err)
+  //   console.log(`Exiting.`)
+  //   process.exit(0)
+  // }
 
   // MIDDLEWARE START
 

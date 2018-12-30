@@ -7,15 +7,6 @@ const coins = require("./controller")
 module.exports.baseUrl = "/coins"
 
 module.exports.routes = [
-  /*
-  {
-    method: 'POST',
-    route: '/',
-    handlers: [
-      user.createUser
-    ]
-  },
-  */
   {
     method: "GET",
     route: "/",
@@ -26,31 +17,19 @@ module.exports.routes = [
   },
   {
     method: "GET",
-    route: "/:bchaddr",
+    ///:amount
+    route: "/:address/:amount",
     handlers: [
       // ensureUser,
       coins.getCoins
     ]
   }
+  // {
+  //   method: "GET",
+  //   route: "/:hex",
+  //   handlers: [
+  //     coins.getBroadcast
+  //   ]
+  // }
 
-  /*
-  {
-    method: 'PUT',
-    route: '/:id',
-    handlers: [
-      ensureUser,
-      user.getUser,
-      user.updateUser
-    ]
-  },
-  {
-    method: 'DELETE',
-    route: '/:id',
-    handlers: [
-      ensureUser,
-      user.getUser,
-      user.deleteUser
-    ]
-  }
-  */
 ]

@@ -4,9 +4,10 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BCH Testnet Faucet</title>
+  <title>BSV Testnet Tools</title>
 
   <link href="css/bootstrap.min.css" media="all" rel="stylesheet" />
+  <link href="css/bootstrap-slider.min.css" media="all" rel="stylesheet" />
   <link href="css/main.css" media="all" rel="stylesheet" />
 
   <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -21,8 +22,28 @@
 <header class='navbar navbar-default navbar-fixed-top'>
   <nav class='container' role='navigation'>
     <div class='navbar-header'>
-      <a href='index.html' class='navbar-brand'>BCH Testnet Faucet</a>
+      <a href='index.html' class='navbar-brand'>BSV Testnet Faucet and Tools</a>
     </div>
+    <div class="pull-right">
+      <ul class="nav navbar-nav">
+          <li>
+            <div class='navbar-header navbar-brand'>
+            To keep faucet flowing
+            </div>
+      <div class="money-button"
+      data-to="145"
+      data-amount="0.99"
+      data-currency="USD"
+      data-label="Donate"
+      data-client-identifier="bc4299564c2dbfb17d4f879590be1d42"
+      data-button-id="1545856198327"
+      data-button-data="{}"
+      data-type="tip"
+      ></div>
+      <script src="https://www.moneybutton.com/moneybutton.js"></script>
+          </li>
+      </ul>     
+</div>
   </nav>
 </header>
 
@@ -30,21 +51,25 @@
   <div class='container'>
     <div class='row well well-lg'>
       <div class='col-md-6'>
-        <h2>BCH Testnet Faucet</h2>
+        <h2>BSV Testnet Faucet</h2>
         <p class='lead'>
-          This is a prototype testnet faucet build with
-          <a href="https://developer.bitcoin.com/bitbox">BITBOX</a>
-          JavaScript SDK for Bitcoin Cash! It currently gives
-          out 0.1 BCH.
+          A testnet faucet and tools built with the
+          <a href="https://github.com/moneybutton/bsv">bsv</a>
+          JavaScript library for Bitcoin SV
         </p>
         <p>
-          <a href="https://github.com/christroutner/testnet-faucet" target="_blank">Fork this demo on GitHub!</a>
+          <a href="https://github.com/dfoderick/testnet-faucet" target="_blank">GitHub Repo</a>
         </p>
       </div>
       <div class='col-md-6 visible-md visible-lg'>
-        <a href="https://developer.bitcoin.com/">
-          <img src='images/bitcoincom.jpg' alt='Bitcoin.com Testnet Faucet' style="width: 100%" />
+        <div>
+        <a href="https://bitcoinsv.io/">
+          <img src='images/BSV_logo_RGB.png' alt='BSV Testnet Faucet' style="width: 100%" />
         </a>
+      </div>
+      <div>
+        Faucet Balance <label id="balance"></label>
+      </div>
       </div>
     </div>
 
@@ -55,39 +80,112 @@
 
   <div class="container">
 
+      <div class="row">
+          <div class='navbar-header'>
+        
+          <label class='navbar-brand'>If you don't have a testnet wallet yet then swipe to get one</label>
+        </div>
+        <div>
+          <div class="money-button"
+          data-to="145"
+          data-amount="0.10"
+          data-currency="USD"
+          data-label="Get Wallet"
+          data-client-identifier="bc4299564c2dbfb17d4f879590be1d42"
+          data-button-id="1545856726749"
+          data-button-data="{}"
+          data-type="tip"
+          data-on-payment="generateWallet"
+          ></div>
+    </div>
+
+    <div id="walletOutput" class="row collapse">
+        <h4>Your Wallet Details: Save this information!</h4>
+        <div class="col-sm-12 well">
+          <p id="outWellWallet" style="white-space: pre-line;"></p>
+        </div>
+      </div>
+  
     <div class="row">
       <div class="col-sm-12">
         <form class="form-inline">
           <div class="form-group">
-            <label for="peerId">BCH Testnet Address: </label>
-            <input type="text" class="form-control" id="bchAddr" size="60" placeholder="bchtest:qqmd9unmhkpx4pkmr6fkrr8rm6y77vckjvqe8aey35">
+            <label for="bxAddress">Your BSV Testnet Address: </label>
+            <input type="text" class="form-control" id="bxAddress" size="60" placeholder="example: mgczdj3eMXFH1h8Q8YSW4aMXNLJX2YZWo7">
           </div>
         </form>
-        <button type="button" class="btn btn-default" onclick="requestBCH()">Get tBCH!</button>
       </div>
     </div>
 
     <div class="row">
-      <div class="col-sm-12">
-        <p>
-          Please send tBCH back to this faucet at this address:<br>
-          <b>bchtest:qqmd9unmhkpx4pkmr6fkrr8rm6y77vckjvqe8aey35</b>
-        </p>
+        <div class="col-sm-12">
+          <form class="form-inline">
+            <div class="form-group">
+                <input id="coinSlider" type="text" width='500px' data-slider-value=".2"/>
+            </div>
+          </form>
+        </div>
+      </div>
+  
+    <div class="row">
+      <div>
+        <div id='moneybuttonFaucet'></div>
       </div>
     </div>
 
-    <div class="row">
-      <h4>Output</h4>
+    <div id="faucetRow" class="row collapse">
+      <h4>Faucet Output</h4>
       <div class="col-sm-12 well">
         <p id="outWell" style="white-space: pre-line;"></p>
       </div>
     </div>
 
+    <div class="row">
+        <div class="col-sm-12">
+          <p>
+            Please return unused tBSV back to this faucet at this address:
+            mgEWZ3FjNvWCswzLikjGMijsdvdV1kxzo6
+          </p>
+        </div>
+    </div>
+  
+    <div class="row">
+      <div class="col-sm-12">
+        <form class="form-inline">
+          <div class="form-group">
+            <label for="rawhex">Tx: </label>
+            <textarea class="form-control" id="rawhex" rows="10" cols="80" size="100" placeholder="paste raw hex tx here"></textarea>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="row">
+        <div>
+        <div class="money-button"
+        data-to="145"
+        data-amount="0.01"
+        data-currency="USD"
+        data-label="Send Raw Tx"
+        data-client-identifier="bc4299564c2dbfb17d4f879590be1d42"
+        data-button-id="1545856726749"
+        data-button-data="{}"
+        data-type="tip"
+        data-on-payment="sendTransaction"
+        ></div>
+    </div>
+    <div id="broadcastOutput" class="row collapse">
+        <h4>Broadcast Transaction Details</h4>
+        <div class="col-sm-12 well">
+          <p id="outWellBroadcast" style="white-space: pre-line;"></p>
+        </div>
+      </div>
+
+  </div>
+
   </div>
 
 </section>
-
-
 
 <!-- CDN -->
 <!--
@@ -100,29 +198,113 @@
 <!-- Local front-end Libraries -->
 <script src="js/jquery.min.js"></script>
 <script src="js/bootstrap.min.js?body=1"></script>
-
+<script src="js/bootstrap-slider.min.js"></script>
 
 <script>
 
+  //const API_URL = "http://localhost:3456";
+  const API_URL = "https://toolsapi.fullcyclemining.com";
 
-  // This function executes when the page has finished loading.
   $(document).ready(function() {
-
+    sliderCoin = $("#coinSlider").slider({
+    ticks: [.1, .2, .3, .4, .5, .6, .7],
+    ticks_labels: ['.1', '.2', '.3', '.4', '.5', '.6', '.7'],
+    ticks_snap_bounds: .1,
+      formatter: function(value) {
+        return `Buy ${value} tBSV`;
+      },
+      ticks_tooltip: true,
+      step: 0.01
+    });
+    sliderCoin.on('change', function(e) {
+          const faucetPayout = e.value.newValue;
+          updateFaucetButton(faucetPayout)
+    });
+    updateFaucetButton(.2);
+    getFaucetBalance();
   });
 
-  async function requestBCH() {
-    try {
-      writeToWell(`Sending request...`)
+  function updateFaucetButton(faucetPayout) {
+    const faucetCost = faucetPayout / 10;
+    const mbfaucet = document.getElementById('moneybuttonFaucet');
+        moneyButton.render(mbfaucet, {
+        amount: faucetCost.toString(),
+        to: "145",
+        currency: "USD",
+        label: "Buy Testnet Coins",
+        clientIdentifier: "bc4299564c2dbfb17d4f879590be1d42",
+        buttonId: "1545856726749",
+        buttonData: "{}",
+        type: "tip",
+        onPayment: turnOnFaucet,
+        onError: function (arg) { console.log('onError', arg) }
+      })
+  }
 
-      const bchAddr = $('#bchAddr').val()
-      if(bchAddr === "") {
-        appendToWell(`Error: BCH Address can not be blank`)
+  async function getFaucetBalance() {
+    const resp = await fetch(`${API_URL}/coins/`)
+    const body = await resp.json()
+    console.log(body)
+    $('#balance').text(body.balance)
+  }
+
+  function showOutput(elementId) {
+    if ($(elementId).hasClass("collapse")) {
+        $(elementId).removeClass("collapse");
+    }
+  }
+
+  function generateWallet (payment) {
+    console.log('making a new testnet wallet');
+    showOutput("#walletOutput");
+    makeWallet();    
+  }
+
+  async function makeWallet() {
+    try {
+      writeToWellWallet(`Sending wallet request...`)
+
+      const resp = await fetch(`${API_URL}/wallet/`)
+      const body = await resp.json()
+      console.log(`body: ${JSON.stringify(body,null,2)}`)
+
+      if(!body) {
+        appendToWellWallet(`Error: The wallet could not be generated.`)
         return
       }
 
-      //const resp = await fetch(`http://localhost:5000/coins/${bchAddr}`)
-      //const resp = await fetch(`http://decatur.hopto.org:3456/coins/${bchAddr}`)
-      const resp = await fetch(`/coins/${bchAddr}`)
+      appendToWellWallet(`Success: you have a new testnet wallet`)
+      appendToWellWallet(`Wallet Passphrase: ${body.mnemonic}`)
+      appendToWellWallet(`Receiving Address: ${body.address}`)
+
+      $('#bxAddress').val(body.address)
+
+    } catch(err) {
+      appendToWellWallet(`request failed`);
+      console.log(`Error in makeWallet: `, err)
+    }
+  }
+
+  function turnOnFaucet (payment) {
+    console.log('requesting testnet transfer');
+    showOutput("#faucetRow");
+    requestCoins();
+    getFaucetBalance();
+  }
+
+  async function requestCoins() {
+    try {
+      writeToWell(`Sending request...`)
+
+      const bxAddress = $('#bxAddress').val()
+      if(bxAddress === "") {
+        appendToWell(`Error: BSV Address can not be blank`)
+        return
+      }
+      const bxAmount = $("#coinSlider").val()
+
+      const resp = await fetch(`${API_URL}/coins/${bxAddress}/${bxAmount}`)
+      //const resp = await fetch(`/coins/${bxAddress}`)
       const body = await resp.json()
       console.log(`body: ${JSON.stringify(body,null,2)}`)
 
@@ -130,17 +312,58 @@
         const message = body.message
 
         if(message === `Invalid BCH cash address.`)
-          appendToWell(`Error: Invalid BCH testnet address`)
-        else
-          appendToWell(`Error: This BCH address has been used before, or you need to wait 24 hours to request from this IP address.`)
-
+          appendToWell(`Error: Invalid BSV testnet address`)
+        else {
+          appendToWell(message)
+          appendToWell(`Error: The transaction was not successful.`)
+        }
         return
       }
 
-      appendToWell(`Success: tBCH are on their way!`)
+      appendToWell(`Success: tBSV are on their way!`)
       appendToWell(`TXID: ${body.txid}`)
     } catch(err) {
-      console.log(`Error in requestBCH: `, err)
+      appendToWell(`request failed`);
+      console.log(`Error in requestCoins: `, err)
+    }
+  }
+
+  function sendTransaction (payment) {
+    showOutput("#broadcastOutput");
+    const raw = $('#rawhex').val()
+      if(raw === "") {
+        writeToWellBroadcast(`Error: Tx cannot be blank`)
+        return
+      }
+    console.log('broadcasting transaction');
+    broadcast(raw);    
+  }
+
+  async function broadcast(raw) {
+    try {
+      writeToWellBroadcast(`Broadcasting.. ${raw}`)
+
+      const resp = await fetch(`${API_URL}/broadcast/${raw}`)
+      const body = await resp.json()
+      console.log(`body: ${JSON.stringify(body,null,2)}`)
+
+      if(!body.success) {
+        const message = body.message
+
+        // if(message === `Invalid BCH cash address.`)
+        //   appendToWell(`Error: Invalid BSV testnet address`)
+        // else {
+          appendToWellBroadcast(message)
+          appendToWellBroadcast(`Error: The transaction was not broadcast.`)
+        // }
+        // return
+      }
+
+      appendToWellBroadcast(`Success: your transaction was broadcast to the network!`)
+      //appendToWell(`TXID: ${body.txid}`)
+    } catch(err) {
+      appendToWellBroadcast(`broadcast failed`);
+      console.log(`Error in broadcast: `, err)
     }
   }
 
@@ -153,14 +376,28 @@
   function writeToWell(str) {
     $('#outWell').text(str)
   }
+  function writeToWellWallet(str) {
+    $('#outWellWallet').text(str)
+  }
+  function writeToWellBroadcast(str) {
+    $('#outWellBroadcast').text(str)
+  }
 
   // Appends a string as a new line to the output well.
   function appendToWell(str) {
     let wellText = $('#outWell').text()
-
     wellText = wellText + '\n' + str
-
     $('#outWell').text(wellText)
+  }
+  function appendToWellWallet(str) {
+    let wellText = $('#outWellWallet').text()
+    wellText = wellText + '\n' + str
+    $('#outWellWallet').text(wellText)
+  }
+  function appendToWellBroadcast(str) {
+    let wellText = $('#outWellBroadcast').text()
+    wellText = wellText + '\n' + str
+    $('#outWellBroadcast').text(wellText)
   }
 
 </script>
