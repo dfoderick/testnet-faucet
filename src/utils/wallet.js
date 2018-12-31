@@ -26,8 +26,8 @@ const request = require('request');
 const bsvMnemonic = require('bsv-mnemonic')
 const bsv = require('bsv')
 
-const BB = require("bitbox-sdk/lib/bitbox-sdk").default
-const BITBOX = new BB({ restURL: `https://trest.bitcoin.com/v1/` })
+//const BB = require("bitbox-sdk/lib/bitbox-sdk").default
+//const BITBOX = new BB({ restURL: `https://trest.bitcoin.com/v1/` })
 // const BITBOX = new BB({ restURL: `http://localhost:3000/v1/` })
 // const BITBOX = new BB({ restURL: `http://decatur.hopto.org:3003/v1/` })
 //const BITBOX = new BB({ restURL: `http://192.168.0.13:3003/v1/` })
@@ -35,6 +35,8 @@ const BITBOX = new BB({ restURL: `https://trest.bitcoin.com/v1/` })
 const walletInfo = require(`../../wallet.json`)
 const faucetAddress = walletInfo.legacyAddress
 const isNodeWallet = faucetAddress === "mgEWZ3FjNvWCswzLikjGMijsdvdV1kxzo6"
+
+const CONSOLIDATE_MAX = 20
 
 //generate a wallet and deposit address
 async function generateWallet() {
@@ -46,6 +48,7 @@ async function generateWallet() {
   return {mnemonic:mnemonic.toString(), address:address.toLegacyAddress()}
 }
 
+//get faucet wallet balance
 async function getBalance() {
   // const mnemonic = walletInfo.mnemonic
   // const rootSeed = BITBOX.Mnemonic.toSeed(mnemonic)
@@ -63,30 +66,20 @@ async function getBalance() {
   return balance
 }
 
+//consoldate wallet utxo
 async function consolidateUTXOs() {
   try {
-    const mnemonic = walletInfo.mnemonic
-
-    // root seed buffer
-    const rootSeed = BITBOX.Mnemonic.toSeed(mnemonic)
-
-    // master HDNode
-    const masterHDNode = BITBOX.HDNode.fromSeed(rootSeed, "testnet") // Testnet
+    const bsvpk = getPrivateKey();
 
     // HDNode of BIP44 account
-    const account = BITBOX.HDNode.derivePath(masterHDNode, "m/44'/145'/0'")
+    //const account = BITBOX.HDNode.derivePath(masterHDNode, "m/44'/145'/0'")
 
-    const change = BITBOX.HDNode.derivePath(account, "0/0")
+    const change = faucetAddress; //BITBOX.HDNode.derivePath(account, "0/0")
 
-    // get the cash address
-    const cashAddress = BITBOX.HDNode.toCashAddress(change)
-    // const cashAddress = walletInfo.cashAddress
-
-    // instance of transaction builder
-    const transactionBuilder = new BITBOX.TransactionBuilder("testnet")
+    const transactionBuilder = new bsv.Transaction()
 
     // Combine all the utxos into the inputs of the TX.
-    const u = await BITBOX.Address.utxo([cashAddress])
+    const u = await faucetWalletUtxos(); //await BITBOX.Address.utxo([cashAddress])
     const inputs = []
     let originalAmount = 0
 
@@ -94,68 +87,36 @@ async function consolidateUTXOs() {
 
     for (let i = 0; i < u[0].length; i++) {
       const thisUtxo = u[0][i]
-
       // Most UTXOs will come from mining rewards, so we need to wait 100
       // confirmations before we spend them.
       if (thisUtxo.confirmations > 100) {
-        originalAmount = originalAmount + thisUtxo.satoshis
+        originalAmount = originalAmount + getAmount(thisUtxo)
         inputs.push(thisUtxo)
-        transactionBuilder.addInput(thisUtxo.txid, thisUtxo.vout)
       }
-
-      // Can only do 20 UTXOs at a time.
-      if (inputs.length > 19) break
+      if (inputs.length >= CONSOLIDATE_MAX) break
     }
 
-    // original amount of satoshis in vin
-    // console.log(`originalAmount: ${originalAmount}`)
-
-    // get byte count to calculate fee. paying 1 sat/byte
-    const byteCount = BITBOX.BitcoinCash.getByteCount(
-      { P2PKH: inputs.length },
-      { P2PKH: 1 }
-    )
-    // console.log(`fee: ${byteCount}`)
-
     // amount to send to receiver. It's the original amount - 1 sat/byte for tx size
-    const sendAmount = originalAmount - byteCount
-    console.log(`sendAmount: ${sendAmount}`)
+    const sendAmount = originalAmount - bsv.Transaction.DUST_AMOUNT;//byteCount
+    // console.log(`sendAmount: ${sendAmount}`)
 
-    // Catch a bug here
     if (sendAmount < 0) {
       console.log(`sendAmount is negative, aborting UTXO consolidation.`)
       return
     }
 
-    // add output w/ address and amount to send
-    transactionBuilder.addOutput(cashAddress, sendAmount)
+    transactionBuilder.from(inputs)
+    transactionBuilder.to(change, sendAmount)
+    transactionBuilder.fee(bsv.Transaction.DUST_AMOUNT);
 
-    // keypair
-    const keyPair = BITBOX.HDNode.toKeyPair(change)
+    const tx = signTx(transactionBuilder, bsvpk);
 
-    // sign w/ HDNode
-    let redeemScript
-    inputs.forEach((input, index) => {
-      // console.log(`inputs[${index}]: ${util.inspect(inputs[index])}`)
-      transactionBuilder.sign(
-        index,
-        keyPair,
-        redeemScript,
-        transactionBuilder.hashTypes.SIGHASH_ALL,
-        inputs[index].satoshis
-      )
-    })
-
-    // build tx
-    const tx = transactionBuilder.build()
-
-    // output rawhex
-    const hex = tx.toHex()
+    const hex = tx.serialize()
+    console.log(`fee = ${tx.getFee()}`)
     // console.log(`TX Hex: ${hex}`)
 
-    // sendRawTransaction to running BCH node
-    const broadcast = await BITBOX.RawTransactions.sendRawTransaction(hex)
-    console.log(`\nConsolidating UTXOs. Transaction ID: ${broadcast}`)
+    // const broadcastResult = await broadcast(hex)
+    // console.log(`\nConsolidating UTXOs. Transaction ID: ${broadcastResult}`)
   } catch (err) {
     console.log(`Error in consolidateUTXOs: `, err)
   }
@@ -207,9 +168,7 @@ async function spend(bsvAddress, amount) {
     //TODO: until we have insight for testnet, hard code the utxo
     //find utxo from explore.satoshisvision.network
     //blocks 1275065,066,074,...
-    //'368e2b459528113ae9d2d2466139ba719d3c60b3c5f1fc8fe415b65ccffd2eff',
-    const u = await faucelWalletUtxos();
-//    console.log(u);
+    const u = await faucetWalletUtxos();
     console.log(`Number of UTXOs: ${u[0].length}`)
     let utxo;
     if (isNodeWallet) {
@@ -227,24 +186,13 @@ async function spend(bsvAddress, amount) {
     const vout = utxo.vout
     const txid = utxo.txid
 
-    // add input with txid and index of vout
-    //transactionBuilder.addInput(txid, vout)
     console.log(utxo);
     transactionBuilder.from(utxo)
 
-    // get byte count to calculate fee. paying 1 sat/byte
-    const byteCount = BITBOX.BitcoinCash.getByteCount(
-      { P2PKH: 1 },
-      { P2PKH: 2 }
-    )
-
-    // Calculate the TX fee.
-    const satoshisPerByte = 1
-    const txFee = Math.floor(satoshisPerByte * byteCount);
-    console.log(`fee: ${txFee}`)
+    const txFee = bsv.Transaction.DUST_AMOUNT;
     // amount to send back to the sending address. It's the original amount - 1 sat/byte for tx size
     // Amount to send in satoshis, defaults to .1
-    const enforced_max = Math.min(70000000, amount * 100000000)
+    const enforced_max = Math.min(70000000, toSatoshis(amount))
     console.log(`enforced max amount ${enforced_max}`);
     const AMOUNT_TO_SEND = enforced_max
     const satoshisToSend = AMOUNT_TO_SEND
@@ -261,32 +209,13 @@ async function spend(bsvAddress, amount) {
     transactionBuilder.change(change)
     transactionBuilder.fee(txFee)
 
-    // Generate a keypair from the change address.
-    //const keyPair = BITBOX.HDNode.toKeyPair(change)
-
-    // build tx
-    console.log(`signing with ${bsvpk}`);
-    let tx;
-    if (isNodeWallet) {
-      tx = transactionBuilder.sign(bsvpk);
-    } else {
-      tx = transactionBuilder.sign(bsvpk.privateKey);
-    }
-    if (!tx.isFullySigned()) {
-      console.error(`Tx IS NOT FULLY SIGNED`);
-    } else {
-      console.log(`Tx is fully signed`);
-    }
+    const tx = signTx(transactionBuilder, bsvpk);
     //if tx does not serialize then problem could be that utxo does not have enough amount!
     const hex = tx.serialize();
     console.log(hex);
-    const jsontx = tx.toObject();
-    console.log(jsontx)
-    console.log(jsontx["inputs"][0])
-    console.log(jsontx["outputs"][0])
-    console.log(jsontx["outputs"][1])
-    let txidSpend = jsontx["hash"]
+    let txidSpend = getTxid(tx);
     console.log(`txid = ${txidSpend}`)
+    console.log(`fee = ${tx.getFee()}`)
 
     const broadcastResult = await broadcast(hex)
 
@@ -304,6 +233,32 @@ async function spend(bsvAddress, amount) {
     console.log(`Error in wallet.spend().`)
     throw err
   }
+}
+
+function signTx(transactionBuilder, bsvpk) {
+  console.log(`signing with ${bsvpk}`);
+  let tx;
+  if (isNodeWallet) {
+    tx = transactionBuilder.sign(bsvpk);
+  } else {
+    tx = transactionBuilder.sign(bsvpk.privateKey);
+  }
+  if (!tx.isFullySigned()) {
+    console.error(`Tx IS NOT FULLY SIGNED`);
+  } else {
+    console.log(`Tx is fully signed`);
+  }
+  return tx;
+}
+
+function getTxid(tx) {
+  const jsontx = tx.toObject();
+  console.log(jsontx)
+  console.log(jsontx["inputs"][0])
+  console.log(jsontx["outputs"][0])
+  console.log(jsontx["outputs"][1])
+  let txidSpend = jsontx["hash"]
+  return txidSpend;
 }
 
 async function broadcast(rawhex) {
@@ -345,7 +300,7 @@ async function decode(rawhex) {
 // wrap a request in an promise. will return string
 function noderpc(options) {
   return new Promise((resolve, reject) => {
-      console.log('calling noderpc')
+      console.log(`calling noderpc ${options["body"]}`)
       request(options, (error, response, body) => {
           if (error) reject(error);
           // if (response.statusCode != 200) {
@@ -376,12 +331,12 @@ function rpcCommand(command, paramsList) {
     },
     body: JSON.stringify( {"jsonrpc": "1.0", "id": "bitcoind-rpc", "method": command, "params": paramsList })
   };
-  console.log(options);
+  //console.log(options);
   return options;
 }
 
 //get utxos of the faucet wallet
-async function faucelWalletUtxos() {
+async function faucetWalletUtxos() {
   console.log(`isNodeWallet ${isNodeWallet}`)
   if (!isNodeWallet) {
     const utxoList = [[
@@ -423,13 +378,22 @@ function findBiggestUtxo(utxos) {
   let largestIndex = 0
   for (var i = 0; i < utxos.length; i++) {
     const thisUtxo = utxos[i]
-    const amt = thisUtxo.satoshis ? thisUtxo.satoshis : thisUtxo.amount;
+    const amt = getAmount(thisUtxo);
     if (amt > largestAmount) {
       largestAmount = amt
       largestIndex = i
     }
   }
   return utxos[largestIndex]
+}
+
+function toSatoshis(amount) {
+  return amount * 100000000;
+}
+
+//get amount from utxo. insight has diferent structure than bitcoind listunspent
+function getAmount(thisUtxo) {
+  return thisUtxo.satoshis ? thisUtxo.satoshis : toSatoshis(thisUtxo.amount) ;
 }
 
 // Returns true if address is valid, false otherwise.

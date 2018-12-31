@@ -279,6 +279,7 @@
       //this will disable the button
       payto = "";
     }
+    console.log(`updateFaucetButton: ${payto} ${faucetCost}`)
     const mbfaucet = document.getElementById('moneybuttonFaucet');
     if (payto) {
           moneyButton.render(mbfaucet, {
@@ -320,7 +321,7 @@
   function generateWallet (payment) {
     console.log('making a new testnet wallet');
     showOutput("#walletOutput");
-    makeWallet();    
+    makeWallet();
   }
 
   async function makeWallet() {
@@ -341,6 +342,7 @@
       appendToWellWallet(`Receiving Address: ${body.address}`)
 
       $('#bxAddress').val(body.address)
+      whenPayoutAddressChange(body.address)
 
     } catch(err) {
       appendToWellWallet(`request failed`);

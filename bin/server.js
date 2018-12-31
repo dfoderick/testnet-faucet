@@ -74,39 +74,39 @@ async function startServer() {
 
   // Cleanup the IP address in the DB every 30 minutes.
   setInterval(function() {
-    cleanIPAddresses()
+     cleanIPAddresses()
   }, 1800000)
 
   // Consolidate UTXOs
   setInterval(function() {
     wallet.consolidateUTXOs()
-  }, 1800000 * 6) // three hours
+  }, 1800000 * 12) // six hours
 
   return app
 }
 // startServer()
 
-async function cleanIPAddresses() {
-  try {
-    // Get all IP addresses in the database.
-    const existingIps = await IpAddresses.find({})
+// async function cleanIPAddresses() {
+//   try {
+//     // Get all IP addresses in the database.
+//     const existingIps = await IpAddresses.find({})
 
-    for (var i = 0; i < existingIps.length; i++) {
-      const thisIp = existingIps[i]
-      const thisTimestamp = new Date(thisIp.timestamp)
+//     for (var i = 0; i < existingIps.length; i++) {
+//       const thisIp = existingIps[i]
+//       const thisTimestamp = new Date(thisIp.timestamp)
 
-      const now = new Date()
-      const oneDay = 1000 * 60 * 60 * 24
-      const oneDayAgo = now.getTime() - oneDay
-      const yesterday = new Date(oneDayAgo)
+//       const now = new Date()
+//       const oneDay = 1000 * 60 * 60 * 24
+//       const oneDayAgo = now.getTime() - oneDay
+//       const yesterday = new Date(oneDayAgo)
 
-      // Remove the IP from the database if it's older than 24 hours.
-      if (thisTimestamp.getTime() < yesterday.getTime()) await thisIp.remove()
-    }
-  } catch (err) {
-    console.log(`Error in cleanIpAddresses: `, err)
-  }
-}
+//       // Remove the IP from the database if it's older than 24 hours.
+//       if (thisTimestamp.getTime() < yesterday.getTime()) await thisIp.remove()
+//     }
+//   } catch (err) {
+//     console.log(`Error in cleanIpAddresses: `, err)
+//   }
+// }
 
 // export default app
 // module.exports = app
