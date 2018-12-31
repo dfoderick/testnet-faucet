@@ -111,7 +111,10 @@
         <form class="form-inline">
           <div class="form-group">
             <label for="bxAddress">Your BSV Testnet Address: </label>
-            <input type="text" class="form-control" id="bxAddress" size="60" placeholder="example: mgczdj3eMXFH1h8Q8YSW4aMXNLJX2YZWo7">
+            <input type="text" class="form-control" id="bxAddress" size="60" 
+              placeholder="example: mgczdj3eMXFH1h8Q8YSW4aMXNLJX2YZWo7"
+              oninput="whenPayoutAddressChange(this.value)"
+            >
           </div>
         </form>
       </div>
@@ -214,31 +217,72 @@
         return `Buy ${value} tBSV`;
       },
       ticks_tooltip: true,
-      step: 0.01
+      step: 0.1
     });
     sliderCoin.on('change', function(e) {
-          const faucetPayout = e.value.newValue;
+          let faucetPayout = e.value.newValue;
+          if (!isValidPayoutAddress()) {
+            faucetPayout = 0;
+          }
           updateFaucetButton(faucetPayout)
     });
-    updateFaucetButton(.2);
+    //updateFaucetButton(.2);
+    whenPayoutAddressChange($("#bxAddress").val())
     getFaucetBalance();
   });
 
+  function isValidPayoutAddress(address) {
+    addressValue = address
+    if (!addressValue) {
+      addressValue = $("#bxAddress").val()
+    }
+    if (!addressValue || !addressValue.trim()) {
+      return false;
+    }
+    return true;
+  }
+
+  function whenPayoutAddressChange (address) {
+    if (!address || !address.trim()) {
+      disableFaucetButton();
+    } else {
+      enableFaucetButton();
+    }
+  }
+
+  function disableFaucetButton (address) {
+    updateFaucetButton(0)
+  }
+
+  function enableFaucetButton (address) {
+    const bxAmount = $("#coinSlider").val()
+    updateFaucetButton(bxAmount)
+  }
+
   function updateFaucetButton(faucetPayout) {
+    let payto = "145";
     const faucetCost = faucetPayout / 10;
+    if (faucetCost == 0) {
+      //this will disable the button
+      payto = "";
+    }
     const mbfaucet = document.getElementById('moneybuttonFaucet');
-        moneyButton.render(mbfaucet, {
-        amount: faucetCost.toString(),
-        to: "145",
-        currency: "USD",
-        label: "Buy Testnet Coins",
-        clientIdentifier: "bc4299564c2dbfb17d4f879590be1d42",
-        buttonId: "1545856726749",
-        buttonData: "{}",
-        type: "tip",
-        onPayment: turnOnFaucet,
-        onError: function (arg) { console.log('onError', arg) }
-      })
+    if (payto) {
+          moneyButton.render(mbfaucet, {
+          amount: faucetCost.toString(),
+          to: payto,
+          currency: "USD",
+          label: "Buy Testnet Coins",
+          clientIdentifier: "bc4299564c2dbfb17d4f879590be1d42",
+          buttonId: "1545856726749",
+          buttonData: "{}",
+          type: "tip",
+          onPayment: turnOnFaucet,
+          onError: function (arg) { console.log('onError', arg) }
+        })
+    } else {
+      mbfaucet.innerHTML = "<b>Create a wallet or enter your address before buying coins</b>";
+    }
   }
 
   async function getFaucetBalance() {
