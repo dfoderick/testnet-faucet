@@ -80,10 +80,13 @@
 
   <div class="container">
 
+    <fieldset class="scheduler-border">
+      <legend class="scheduler-border">Step 1: Get a Wallet</legend>
+      <div class="control-group">
       <div class="row">
           <div class='navbar-header'>
         
-          <label class='navbar-brand'>If you don't have a testnet wallet yet then swipe to get one</label>
+          <label class='navbar-brand'>If you don't have a testnet address yet then swipe to get a wallet and address</label>
         </div>
         <div>
           <div class="money-button"
@@ -105,7 +108,12 @@
           <p id="outWellWallet" style="white-space: pre-line;"></p>
         </div>
       </div>
-  
+    </div>
+  </fieldset>
+
+  <fieldset class="scheduler-border">
+    <legend class="scheduler-border">Step 2: Enter Address</legend>
+
     <div class="row">
       <div class="col-sm-12">
         <form class="form-inline">
@@ -119,20 +127,31 @@
         </form>
       </div>
     </div>
+  </fieldset>
 
-    <div class="row">
+<fieldset class="scheduler-border">
+    <legend class="scheduler-border">Step 3: Buy Coins</legend>
+
+    <div class="control-group">
+      <div class="row">
         <div class="col-sm-12">
-          <form class="form-inline">
+          <form>
             <div class="form-group">
-                <input id="coinSlider" type="text" width='500px' data-slider-value=".2"/>
+              <label for="coinSlider" class="control-label">Select the amount of coin to buy:</label>
+              &nbsp;&nbsp;&nbsp;&nbsp;
+              <input id="coinSlider" type="text" class="form-control" data-slider-value=".2"/>
             </div>
           </form>
         </div>
       </div>
   
     <div class="row">
-      <div>
-        <div id='moneybuttonFaucet'></div>
+      <div class="col-sm-12">
+        <form class="form-inline">
+          <div class="form-group">
+            <div id='moneybuttonFaucet'></div>
+          </div>
+        </form>
       </div>
     </div>
 
@@ -151,7 +170,11 @@
           </p>
         </div>
     </div>
+    </div>
+  </fieldset>
   
+  <fieldset class="scheduler-border">
+    <legend class="scheduler-border">Use the form below to broadcast or decode a transaction</legend>
     <div class="row">
       <div class="col-sm-12">
         <form class="form-inline">
@@ -167,37 +190,48 @@
     </div>
 
     <div id="outputRawHex" class="row">
-      <div>
-        <div class="money-button"
-        data-to="145"
-        data-amount="0.01"
-        data-currency="USD"
-        data-label="Send Raw Tx"
-        data-client-identifier="bc4299564c2dbfb17d4f879590be1d42"
-        data-button-id="1545856726749"
-        data-button-data="{}"
-        data-type="tip"
-        data-on-payment="sendTransaction"
-        ></div>
-        <div class="money-button"
-        data-to="145"
-        data-amount="0.01"
-        data-currency="USD"
-        data-label="Decode Raw Tx"
-        data-client-identifier="bc4299564c2dbfb17d4f879590be1d42"
-        data-button-id="1545856726749"
-        data-button-data="{}"
-        data-type="tip"
-        data-on-payment="decodeTransaction"
-        ></div>
+      <div class="col-sm-12">
+        <form class="form-inline">
+          <div class="form-group">
+
+            <div>
+              <div class="money-button"
+              data-to="145"
+              data-amount="0.01"
+              data-currency="USD"
+              data-label="Send Raw Tx"
+              data-client-identifier="bc4299564c2dbfb17d4f879590be1d42"
+              data-button-id="1545856726749"
+              data-button-data="{}"
+              data-type="tip"
+              data-on-payment="sendTransaction"
+              ></div>
+              <div class="money-button"
+              data-to="145"
+              data-amount="0.01"
+              data-currency="USD"
+              data-label="Decode Raw Tx"
+              data-client-identifier="bc4299564c2dbfb17d4f879590be1d42"
+              data-button-id="1545856726749"
+              data-button-data="{}"
+              data-type="tip"
+              data-on-payment="decodeTransaction"
+              ></div>
+            </div>
+            <div id="broadcastOutput" class="row collapse">
+              <h4>Broadcast Transaction Details</h4>
+              <div class="col-sm-12 well">
+                <p id="outWellBroadcast" style="white-space: pre-line;"></p>
+              </div>
+            </div>
+      
+          </div>
+        </form>
       </div>
-      <div id="broadcastOutput" class="row collapse">
-        <h4>Broadcast Transaction Details</h4>
-        <div class="col-sm-12 well">
-          <p id="outWellBroadcast" style="white-space: pre-line;"></p>
-        </div>
-      </div>
-  </div>
+    </div>
+
+
+</fieldset>
 
   </div>
 
@@ -295,7 +329,7 @@
           onError: function (arg) { console.log('onError', arg) }
         })
     } else {
-      mbfaucet.innerHTML = "<b>Create a wallet or enter your address before buying coins</b>";
+      mbfaucet.innerHTML = '<div class="alert alert-warning">Create a wallet or enter your address before buying coins</div>';
     }
   }
 
@@ -466,12 +500,6 @@
       const resp = await fetch(`${API_URL}/broadcast/decode/${raw}`)
       const body = await resp.json()
       console.log(`decoded: ${JSON.stringify(body,null,2)}`)
-
-      // if(!body.success) {
-      //   const message = body.message
-      //   appendToWellBroadcast(message)
-      //   appendToWellBroadcast(`Error: The transaction was not decoded.`)
-      // }
 
       appendToWellBroadcast(`${JSON.stringify(body,null,2)}`)
     } catch(err) {

@@ -73,9 +73,9 @@ async function startServer() {
   console.log(`Server started on ${config.port}`)
 
   // Cleanup the IP address in the DB every 30 minutes.
-  setInterval(function() {
-     cleanIPAddresses()
-  }, 1800000)
+  // setInterval(function() {
+  //    cleanIPAddresses()
+  // }, 1800000)
 
   // Consolidate UTXOs
   setInterval(function() {
