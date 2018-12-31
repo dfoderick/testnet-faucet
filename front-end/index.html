@@ -157,14 +157,17 @@
         <form class="form-inline">
           <div class="form-group">
             <label for="rawhex">Tx: </label>
-            <textarea class="form-control" id="rawhex" rows="10" cols="80" size="100" placeholder="paste raw hex tx here"></textarea>
+            <textarea class="form-control" id="rawhex" rows="10" cols="80" size="100" 
+              placeholder="paste raw hex tx here"
+              oninput="whenRawHexChange(this.value)"
+            ></textarea>
           </div>
         </form>
       </div>
     </div>
 
-    <div class="row">
-        <div>
+    <div id="outputRawHex" class="row">
+      <div>
         <div class="money-button"
         data-to="145"
         data-amount="0.01"
@@ -176,14 +179,24 @@
         data-type="tip"
         data-on-payment="sendTransaction"
         ></div>
-    </div>
-    <div id="broadcastOutput" class="row collapse">
+        <div class="money-button"
+        data-to="145"
+        data-amount="0.01"
+        data-currency="USD"
+        data-label="Decode Raw Tx"
+        data-client-identifier="bc4299564c2dbfb17d4f879590be1d42"
+        data-button-id="1545856726749"
+        data-button-data="{}"
+        data-type="tip"
+        data-on-payment="decodeTransaction"
+        ></div>
+      </div>
+      <div id="broadcastOutput" class="row collapse">
         <h4>Broadcast Transaction Details</h4>
         <div class="col-sm-12 well">
           <p id="outWellBroadcast" style="white-space: pre-line;"></p>
         </div>
       </div>
-
   </div>
 
   </div>
@@ -226,7 +239,7 @@
           }
           updateFaucetButton(faucetPayout)
     });
-    //updateFaucetButton(.2);
+    disableRawHexButton();
     whenPayoutAddressChange($("#bxAddress").val())
     getFaucetBalance();
   });
@@ -295,6 +308,12 @@
   function showOutput(elementId) {
     if ($(elementId).hasClass("collapse")) {
         $(elementId).removeClass("collapse");
+    }
+  }
+
+  function hideRow(elementId) {
+    if (!$(elementId).hasClass("collapse")) {
+        $(elementId).addClass("collapse");
     }
   }
 
@@ -408,6 +427,54 @@
     } catch(err) {
       appendToWellBroadcast(`broadcast failed`);
       console.log(`Error in broadcast: `, err)
+    }
+  }
+
+  function whenRawHexChange (hex) {
+    if (!hex || !hex.trim()) {
+      disableRawHexButton();
+    } else {
+      enableRawHexButton();
+    }
+  }
+
+  function disableRawHexButton () {
+    hideRow("#outputRawHex");
+  }
+
+  function enableRawHexButton () {
+    showOutput("#outputRawHex");
+  }
+
+  function decodeTransaction (payment) {
+    showOutput("#broadcastOutput");
+    const raw = $('#rawhex').val()
+      if(raw === "") {
+        writeToWellBroadcast(`Error: Tx cannot be blank`)
+        return
+      }
+    console.log('decoding transaction');
+    decode(raw);    
+  }
+
+  async function decode(raw) {
+    try {
+      writeToWellBroadcast(`Decoding Tx..`)
+
+      const resp = await fetch(`${API_URL}/broadcast/decode/${raw}`)
+      const body = await resp.json()
+      console.log(`decoded: ${JSON.stringify(body,null,2)}`)
+
+      // if(!body.success) {
+      //   const message = body.message
+      //   appendToWellBroadcast(message)
+      //   appendToWellBroadcast(`Error: The transaction was not decoded.`)
+      // }
+
+      appendToWellBroadcast(`${JSON.stringify(body,null,2)}`)
+    } catch(err) {
+      appendToWellBroadcast(`decode failed`);
+      console.log(`Error in decode: `, err)
     }
   }
 

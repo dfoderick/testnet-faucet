@@ -10,6 +10,7 @@ module.exports = {
   spend, // Send coin to an address.
   getBalance,
   broadcast,
+  decode,
   utxos
 }
 
@@ -329,6 +330,16 @@ async function broadcast(rawhex) {
   }
 
   return broadcastResult
+}
+
+async function decode(rawhex) {
+  try {
+    const tx = new bsv.Transaction(rawhex)
+    return tx.toObject();
+  } catch (error) {
+    console.error(error);
+    return error;
+  }
 }
 
 // wrap a request in an promise. will return string
