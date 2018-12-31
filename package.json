@@ -35,6 +35,8 @@
     "apidoc": "^0.16.1",
     "bcryptjs": "^2.4.3",
     "bitbox-sdk": "^2.0.3",
+    "bsv": "^0.20.3",
+    "bsv-mnemonic": "^1.7.2",
     "glob": "^7.0.0",
     "jsonwebtoken": "^7.1.9",
     "kcors": "^2.2.1",
