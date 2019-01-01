@@ -192,7 +192,7 @@ async function spend(bsvAddress, amount) {
     const txFee = bsv.Transaction.DUST_AMOUNT;
     // amount to send back to the sending address. It's the original amount - 1 sat/byte for tx size
     // Amount to send in satoshis, defaults to .1
-    const enforced_max = Math.min(70000000, toSatoshis(amount))
+    const enforced_max = Math.min(100000000, toSatoshis(amount))
     console.log(`enforced max amount ${enforced_max}`);
     const AMOUNT_TO_SEND = enforced_max
     const satoshisToSend = AMOUNT_TO_SEND
